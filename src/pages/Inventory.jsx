@@ -19,6 +19,7 @@ const Inventory = () => {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [stockUpdate, setStockUpdate] = useState({ show: false, productId: null, quantity: 0 });
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Get user role from response
   const userData = user?.user || user;
@@ -27,6 +28,22 @@ const Inventory = () => {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  // Filter products based on search query
+  const filteredProducts = products.filter(product => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase().trim();
+    const name = product.name?.toLowerCase() || "";
+    const sku = product.sku?.toLowerCase() || "";
+    const category = product.category?.name?.toLowerCase() || "";
+    
+    return (
+      name.includes(query) ||
+      sku.includes(query) ||
+      category.includes(query)
+    );
+  });
 
   // Handle product form submission
   const handleProductSubmit = async (values) => {
@@ -70,23 +87,72 @@ const Inventory = () => {
     return <span className="badge bg-success">In Stock</span>;
   };
 
+  // Clear search
+  const clearSearch = () => {
+    setSearchQuery("");
+  };
+
   return (
     <div className="container-fluid py-4 bg-light min-vh-100">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h5 className="fw-bold mb-0">All Items ({products.length})</h5>
+      {/* Search Bar and Header */}
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+        <div>
+          <h5 className="fw-bold mb-1">All Products</h5>
+          <div className="small text-muted">
+            Showing {filteredProducts.length} of {products.length} items
+            {searchQuery && (
+              <span className="ms-2">
+                for "<span className="fw-semibold">{searchQuery}</span>"
+                <button 
+                  className="btn btn-link btn-sm p-0 ms-2 text-danger"
+                  onClick={clearSearch}
+                >
+                  <i className="bi bi-x-circle"></i> Clear
+                </button>
+              </span>
+            )}
+          </div>
+        </div>
 
-        {/* Show button only for admin */}
-        {userRole === "admin" && (
-          <button 
-            className="btn btn-danger fw-bold shadow-sm d-flex align-items-center gap-1"
-            onClick={() => {
-              setEditingProduct(null);
-              setShowProductForm(true);
-            }}
-          >
-            <i className="bi bi-plus-circle"></i> New Item
-          </button>
-        )}
+        <div className="d-flex flex-column flex-md-row gap-3 w-100 w-md-auto">
+          {/* Search Bar - Visible on all screen sizes */}
+          <div className="input-group" style={{ maxWidth: "400px" }}>
+            <span className="input-group-text bg-white border-end-0">
+              <i className="bi bi-search text-secondary"></i>
+            </span>
+            <input
+              type="text"
+              className="form-control border-start-0"
+              placeholder="Search by name, SKU, or category..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                className="btn btn-outline-secondary"
+                type="button"
+                onClick={clearSearch}
+                title="Clear search"
+              >
+                <i className="bi bi-x"></i>
+              </button>
+            )}
+          </div>
+
+          {/* New Item Button - Only for admin */}
+          {userRole === "admin" && (
+            <button 
+              className="btn btn-danger fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
+              onClick={() => {
+                setEditingProduct(null);
+                setShowProductForm(true);
+              }}
+              style={{ minWidth: "120px" }}
+            >
+              <i className="bi bi-plus-circle"></i> New Item
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Products Table */}
@@ -116,19 +182,43 @@ const Inventory = () => {
                     </div>
                   </td>
                 </tr>
-              ) : products.length === 0 ? (
+              ) : filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={userRole === "admin" ? 9 : 8} className="text-center py-5 text-muted">
-                    No products found. Add your first product!
+                  <td colSpan={userRole === "admin" ? 9 : 8} className="text-center py-5">
+                    <div className="text-muted">
+                      {searchQuery ? (
+                        <div>
+                          <i className="bi bi-search display-6 text-secondary mb-3"></i>
+                          <h6 className="fw-bold mb-2">No products found</h6>
+                          <p className="mb-0">No products match "<span className="fw-semibold">{searchQuery}</span>"</p>
+                          <button 
+                            className="btn btn-link btn-sm p-0 mt-2"
+                            onClick={clearSearch}
+                          >
+                            Clear search to show all products
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <i className="bi bi-inbox display-6 text-secondary mb-3"></i>
+                          <h6 className="fw-bold mb-2">No products found</h6>
+                          <p className="mb-0">Add your first product to get started</p>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ) : (
-                products.map((product) => (
+                filteredProducts.map((product) => (
                   <tr key={product._id}>
                     <td className="ps-4">
                       <div className="d-flex flex-column">
                         <div className={`fw-bold ${product.quantity <= product.lowStockThreshold ? "text-danger" : ""}`}>
                           {product.name}
+                          {/* Highlight search matches */}
+                          {searchQuery && (product.name.toLowerCase().includes(searchQuery.toLowerCase()) && (
+                            <span className="badge bg-info-subtle text-info ms-2">Name match</span>
+                          ))}
                         </div>
                         {product.description && (
                           <div className="small text-muted mt-1" style={{ maxWidth: "250px" }}>
@@ -140,12 +230,22 @@ const Inventory = () => {
                       </div>
                     </td>
                     <td>
-                      <span className="badge bg-light text-dark border">{product.sku}</span>
+                      <span className="badge bg-light text-dark border">
+                        {product.sku}
+                        {/* Highlight search matches */}
+                        {searchQuery && (product.sku.toLowerCase().includes(searchQuery.toLowerCase()) && (
+                          <span className="ms-1 text-success"><i className="bi bi-check-circle"></i></span>
+                        ))}
+                      </span>
                     </td>
                     <td>
                       {product.category?.name || (
                         <span className="text-muted small">No category</span>
                       )}
+                      {/* Highlight search matches */}
+                      {searchQuery && (product.category?.name?.toLowerCase().includes(searchQuery.toLowerCase()) && (
+                        <span className="badge bg-warning-subtle text-warning ms-2">Category match</span>
+                      ))}
                     </td>
                     <td className="fw-bold">${product.purchasePrice?.toFixed(2)}</td>
                     <td className="fw-bold text-success">${product.sellingPrice?.toFixed(2)}</td>
@@ -277,7 +377,7 @@ const Inventory = () => {
         </div>
       )}
 
-      <style>
+      {/* <style>
         {`
           .table-hover tbody tr:hover {
             background-color: rgba(0,0,0,0.03);
@@ -296,8 +396,11 @@ const Inventory = () => {
           .badge {
             font-weight: 500;
           }
+          .search-highlight {
+            background-color: #fff3cd !important;
+          }
         `}
-      </style>
+      </style> */}
     </div>
   );
 };

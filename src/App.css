@@ -15,8 +15,9 @@
 .table-hover tbody tr {
   transition: background 0.2s ease;
 }
+
 .table-hover tbody tr:hover {
-  background-color: rgba(0,0,0,0.03);
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
 
@@ -27,4 +28,32 @@
 
 .action-icon:hover {
   color: #dc3545;
+}
+
+
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.action-icon {
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: 1.2rem;
+}
+
+.action-icon:hover {
+  transform: scale(1.15);
+}
+
+.table th,
+.table td {
+  vertical-align: middle !important;
+}
+
+.badge {
+  font-weight: 500;
+}
+
+.search-highlight {
+  background-color: #fff3cd !important;
 }
