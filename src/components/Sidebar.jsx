@@ -1,3 +1,4 @@
+// Update src/components/Sidebar.jsx
 import React from "react";
 
 const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
@@ -35,6 +36,43 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
           >
             <i className="bi bi-box-seam"></i>
             Inventory Items
+          </button>
+
+          <button
+            className={`btn text-start d-flex align-items-center gap-2 ${
+              activeTab === "purchase-orders"
+                ? "btn-danger"
+                : "btn-dark text-white-50"
+            }`}
+            onClick={() => setActiveTab("purchase-orders")}
+          >
+            <i className="bi bi-receipt"></i>
+            Purchase Orders
+          </button>
+
+          <button
+            className={`btn text-start d-flex align-items-center gap-2 ${
+              activeTab === "invoices"
+                ? "btn-danger"
+                : "btn-dark text-white-50"
+            }`}
+            onClick={() => setActiveTab("invoices")}
+          >
+            <i className="bi bi-receipt-cutoff"></i>
+            Invoices
+          </button>
+
+          {/* Added Stock Movements button */}
+          <button
+            className={`btn text-start d-flex align-items-center gap-2 ${
+              activeTab === "stock-movements"
+                ? "btn-danger"
+                : "btn-dark text-white-50"
+            }`}
+            onClick={() => setActiveTab("stock-movements")}
+          >
+            <i className="bi bi-arrow-left-right"></i>
+            Stock Movements
           </button>
         </nav>
 
@@ -90,6 +128,46 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
             >
               <i className="bi bi-box-seam"></i>
               Inventory Items
+            </button>
+
+            <button
+              className={`btn text-start d-flex align-items-center gap-2 ${
+                activeTab === "purchase-orders"
+                  ? "btn-danger"
+                  : "btn-dark text-white-50"
+              }`}
+              data-bs-dismiss="offcanvas"
+              onClick={() => setActiveTab("purchase-orders")}
+            >
+              <i className="bi bi-receipt"></i>
+              Purchase Orders
+            </button>
+
+            <button
+              className={`btn text-start d-flex align-items-center gap-2 ${
+                activeTab === "invoices"
+                  ? "btn-danger"
+                  : "btn-dark text-white-50"
+              }`}
+              data-bs-dismiss="offcanvas"
+              onClick={() => setActiveTab("invoices")}
+            >
+              <i className="bi bi-receipt-cutoff"></i>
+              Invoices
+            </button>
+
+            {/* Added Stock Movements button for mobile */}
+            <button
+              className={`btn text-start d-flex align-items-center gap-2 ${
+                activeTab === "stock-movements"
+                  ? "btn-danger"
+                  : "btn-dark text-white-50"
+              }`}
+              data-bs-dismiss="offcanvas"
+              onClick={() => setActiveTab("stock-movements")}
+            >
+              <i className="bi bi-arrow-left-right"></i>
+              Stock Movements
             </button>
           </nav>
 
