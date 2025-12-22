@@ -20,6 +20,7 @@ const Inventory = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [stockUpdate, setStockUpdate] = useState({ show: false, productId: null, quantity: 0 });
   const [searchQuery, setSearchQuery] = useState("");
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Get user role from response
   const userData = user?.user || user;
@@ -82,6 +83,13 @@ const Inventory = () => {
 
   // Get stock status badge
   const getStockStatus = (quantity, threshold) => {
+    if (quantity === 0) return <span className="badge bg-danger">Out of stock</span>;
+    if (quantity <= threshold) return <span className="badge bg-warning text-dark">Low Stock</span>;
+    return <span className="badge bg-success">In Stock</span>;
+  };
+
+  // Get stock status for mobile card
+  const getStockStatusMobile = (quantity, threshold) => {
     if (quantity === 0) return <span className="badge bg-danger">Out of Stock</span>;
     if (quantity <= threshold) return <span className="badge bg-warning text-dark">Low Stock</span>;
     return <span className="badge bg-success">In Stock</span>;
@@ -92,11 +100,114 @@ const Inventory = () => {
     setSearchQuery("");
   };
 
+  // Mobile view product card
+  const ProductCard = ({ product }) => (
+    <div className="card mb-3 border-0 shadow-sm">
+      <div className="card-body">
+        <div className="d-flex justify-content-between align-items-start mb-2">
+          <div className="flex-grow-1">
+            <h6 className={`fw-bold mb-1 ${product.quantity <= product.lowStockThreshold ? "text-danger" : ""}`}>
+              {product.name}
+            </h6>
+            <div className="small text-muted mb-2">
+              {product.description && product.description.length > 60 
+                ? `${product.description.substring(0, 60)}...` 
+                : product.description}
+            </div>
+          </div>
+          {userRole === "admin" && (
+            <div className="dropdown">
+              <button 
+                className="btn btn-sm btn-outline-secondary border-0"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i className="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul className="dropdown-menu">
+                <li>
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => {
+                      setEditingProduct(product);
+                      setShowProductForm(true);
+                    }}
+                  >
+                    <i className="bi bi-pencil-square me-2"></i> Edit
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    className="dropdown-item text-danger"
+                    onClick={() => handleDeleteProduct(product._id)}
+                  >
+                    <i className="bi bi-trash3 me-2"></i> Delete
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => setStockUpdate({ 
+                      show: true, 
+                      productId: product._id, 
+                      quantity: 0 
+                    })}
+                  >
+                    <i className="bi bi-arrow-clockwise me-2"></i> Adjust Stock
+                  </button>
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <div className="row g-2 mb-2">
+          <div className="col-6">
+            <div className="small text-muted">SKU</div>
+            <div className="fw-semibold">{product.sku}</div>
+          </div>
+          <div className="col-6">
+            <div className="small text-muted">Category</div>
+            <div className="fw-semibold">{product.category?.name || "No category"}</div>
+          </div>
+        </div>
+
+        <div className="row g-2 mb-2">
+          <div className="col-6">
+            <div className="small text-muted">Purchase Price</div>
+            <div className="fw-bold">${product.purchasePrice?.toFixed(2)}</div>
+          </div>
+          <div className="col-6">
+            <div className="small text-muted">Selling Price</div>
+            <div className="fw-bold text-success">${product.sellingPrice?.toFixed(2)}</div>
+          </div>
+        </div>
+
+        <div className="row g-2">
+          <div className="col-6">
+            <div className="small text-muted">Stock</div>
+            <div className="d-flex align-items-center gap-2">
+              <span className={`fw-bold ${product.quantity <= product.lowStockThreshold ? "text-danger" : ""}`}>
+                {product.quantity} {product.unit}
+              </span>
+              {getStockStatusMobile(product.quantity, product.lowStockThreshold)}
+            </div>
+          </div>
+          <div className="col-6">
+            <div className="small text-muted">Low Stock</div>
+            <div className="fw-semibold">{product.lowStockThreshold}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="container-fluid py-4 bg-light min-vh-100">
-      {/* Search Bar and Header */}
-      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
-        <div>
+    <div className="container-fluid py-3 py-md-4 bg-light min-vh-100">
+      {/* HEADER SECTION - MOBILE OPTIMIZED */}
+      <div className="row align-items-center mb-3 mb-md-4">
+        <div className="col-12 col-md-6">
           <h5 className="fw-bold mb-1">All Products</h5>
           <div className="small text-muted">
             Showing {filteredProducts.length} of {products.length} items
@@ -114,201 +225,257 @@ const Inventory = () => {
           </div>
         </div>
 
-        <div className="d-flex flex-column flex-md-row gap-3 w-100 w-md-auto">
-          {/* Search Bar - Visible on all screen sizes */}
-          <div className="input-group" style={{ maxWidth: "400px" }}>
-            <span className="input-group-text bg-white border-end-0">
-              <i className="bi bi-search text-secondary"></i>
-            </span>
-            <input
-              type="text"
-              className="form-control border-start-0"
-              placeholder="Search by name, SKU, or category..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
+        {/* SEARCH AND ACTIONS - MOBILE OPTIMIZED */}
+        <div className="col-12 col-md-6 mt-3 mt-md-0">
+          <div className="d-flex flex-column flex-md-row gap-2">
+            {/* MOBILE SEARCH BAR */}
+            <div className="d-flex gap-2">
+              <div className="input-group flex-grow-1">
+                <span className="input-group-text bg-white border-end-0">
+                  <i className="bi bi-search text-secondary"></i>
+                </span>
+                <input
+                  type="text"
+                  className="form-control border-start-0"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    className="btn btn-outline-secondary"
+                    type="button"
+                    onClick={clearSearch}
+                    title="Clear search"
+                  >
+                    <i className="bi bi-x"></i>
+                  </button>
+                )}
+              </div>
+              
+              {/* MOBILE FILTER TOGGLE */}
               <button
-                className="btn btn-outline-secondary"
-                type="button"
-                onClick={clearSearch}
-                title="Clear search"
+                className="btn btn-outline-secondary d-md-none"
+                onClick={() => setShowMobileFilters(!showMobileFilters)}
+                title="Filter options"
               >
-                <i className="bi bi-x"></i>
+                <i className="bi bi-funnel"></i>
+              </button>
+            </div>
+
+            {/* NEW ITEM BUTTON */}
+            {userRole === "admin" && (
+              <button 
+                className="btn btn-danger fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 mt-2 mt-md-0"
+                onClick={() => {
+                  setEditingProduct(null);
+                  setShowProductForm(true);
+                }}
+              >
+                <i className="bi bi-plus-circle"></i> 
+                <span className="d-none d-md-inline">New Item</span>
+                <span className="d-md-none">Add</span>
               </button>
             )}
           </div>
-
-          {/* New Item Button - Only for admin */}
-          {userRole === "admin" && (
-            <button 
-              className="btn btn-danger fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
-              onClick={() => {
-                setEditingProduct(null);
-                setShowProductForm(true);
-              }}
-              style={{ minWidth: "120px" }}
-            >
-              <i className="bi bi-plus-circle"></i> New Item
-            </button>
-          )}
         </div>
       </div>
 
-      {/* Products Table */}
-      <div className="card border-0 shadow-sm">
-        <div className="table-responsive">
-          <table className="table table-hover align-middle mb-0">
-            <thead className="bg-light border-bottom">
-              <tr className="small text-muted text-uppercase">
-                <th className="ps-4 py-3">Product Name</th>
-                <th>SKU</th>
-                <th>Category</th>
-                <th>Purchase Price</th>
-                <th>Selling Price</th>
-                <th className="text-center">Stock</th>
-                <th className="text-center">Low Stock Level</th>
-                <th className="text-center">Status</th>
-                {userRole === "admin" && <th className="text-center pe-4">Actions</th>}
-              </tr>
-            </thead>
-
-            <tbody>
-              {productsLoading ? (
-                <tr>
-                  <td colSpan={userRole === "admin" ? 9 : 8} className="text-center py-5">
-                    <div className="spinner-border text-danger" role="status">
-                      <span className="visually-hidden">Loading...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredProducts.length === 0 ? (
-                <tr>
-                  <td colSpan={userRole === "admin" ? 9 : 8} className="text-center py-5">
-                    <div className="text-muted">
-                      {searchQuery ? (
-                        <div>
-                          <i className="bi bi-search display-6 text-secondary mb-3"></i>
-                          <h6 className="fw-bold mb-2">No products found</h6>
-                          <p className="mb-0">No products match "<span className="fw-semibold">{searchQuery}</span>"</p>
-                          <button 
-                            className="btn btn-link btn-sm p-0 mt-2"
-                            onClick={clearSearch}
-                          >
-                            Clear search to show all products
-                          </button>
-                        </div>
-                      ) : (
-                        <div>
-                          <i className="bi bi-inbox display-6 text-secondary mb-3"></i>
-                          <h6 className="fw-bold mb-2">No products found</h6>
-                          <p className="mb-0">Add your first product to get started</p>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+      {/* MOBILE PRODUCT CARDS (Hidden on Desktop) */}
+      <div className="d-md-none">
+        {productsLoading ? (
+          <div className="text-center py-5">
+            <div className="spinner-border text-danger" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-5">
+            <div className="text-muted">
+              {searchQuery ? (
+                <div>
+                  <i className="bi bi-search display-6 text-secondary mb-3"></i>
+                  <h6 className="fw-bold mb-2">No products found</h6>
+                  <p className="mb-0">No products match "<span className="fw-semibold">{searchQuery}</span>"</p>
+                  <button 
+                    className="btn btn-link btn-sm p-0 mt-2"
+                    onClick={clearSearch}
+                  >
+                    Clear search to show all products
+                  </button>
+                </div>
               ) : (
-                filteredProducts.map((product) => (
-                  <tr key={product._id}>
-                    <td className="ps-4">
-                      <div className="d-flex flex-column">
-                        <div className={`fw-bold ${product.quantity <= product.lowStockThreshold ? "text-danger" : ""}`}>
-                          {product.name}
-                          {/* Highlight search matches */}
-                          {searchQuery && (product.name.toLowerCase().includes(searchQuery.toLowerCase()) && (
-                            <span className="badge bg-info-subtle text-info ms-2">Name match</span>
-                          ))}
-                        </div>
-                        {product.description && (
-                          <div className="small text-muted mt-1" style={{ maxWidth: "250px" }}>
-                            {product.description.length > 40 
-                              ? `${product.description.substring(0, 40)}...` 
-                              : product.description}
+                <div>
+                  <i className="bi bi-inbox display-6 text-secondary mb-3"></i>
+                  <h6 className="fw-bold mb-2">No products found</h6>
+                  <p className="mb-0">Add your first product to get started</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          filteredProducts.map((product) => (
+            <ProductCard key={product._id} product={product} />
+          ))
+        )}
+      </div>
+
+      {/* DESKTOP TABLE (Hidden on Mobile) */}
+      <div className="d-none d-md-block">
+        <div className="card border-0 shadow-sm">
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="bg-light border-bottom">
+                <tr className="small text-muted text-uppercase">
+                  <th className="ps-4 py-3">Product Name</th>
+                  <th>SKU</th>
+                  <th>Category</th>
+                  <th>Purchase Price</th>
+                  <th>Selling Price</th>
+                  <th className="text-center">Stock</th>
+                  <th className="text-center">Low Stock Level</th>
+                  <th className="text-center">Status</th>
+                  {userRole === "admin" && <th className="text-center pe-4">Actions</th>}
+                </tr>
+              </thead>
+
+              <tbody>
+                {productsLoading ? (
+                  <tr>
+                    <td colSpan={userRole === "admin" ? 9 : 8} className="text-center py-5">
+                      <div className="spinner-border text-danger" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredProducts.length === 0 ? (
+                  <tr>
+                    <td colSpan={userRole === "admin" ? 9 : 8} className="text-center py-5">
+                      <div className="text-muted">
+                        {searchQuery ? (
+                          <div>
+                            <i className="bi bi-search display-6 text-secondary mb-3"></i>
+                            <h6 className="fw-bold mb-2">No products found</h6>
+                            <p className="mb-0">No products match "<span className="fw-semibold">{searchQuery}</span>"</p>
+                            <button 
+                              className="btn btn-link btn-sm p-0 mt-2"
+                              onClick={clearSearch}
+                            >
+                              Clear search to show all products
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            <i className="bi bi-inbox display-6 text-secondary mb-3"></i>
+                            <h6 className="fw-bold mb-2">No products found</h6>
+                            <p className="mb-0">Add your first product to get started</p>
                           </div>
                         )}
                       </div>
                     </td>
-                    <td>
-                      <span className="badge bg-light text-dark border">
-                        {product.sku}
-                        {/* Highlight search matches */}
-                        {searchQuery && (product.sku.toLowerCase().includes(searchQuery.toLowerCase()) && (
-                          <span className="ms-1 text-success"><i className="bi bi-check-circle"></i></span>
-                        ))}
-                      </span>
-                    </td>
-                    <td>
-                      {product.category?.name || (
-                        <span className="text-muted small">No category</span>
-                      )}
-                      {/* Highlight search matches */}
-                      {searchQuery && (product.category?.name?.toLowerCase().includes(searchQuery.toLowerCase()) && (
-                        <span className="badge bg-warning-subtle text-warning ms-2">Category match</span>
-                      ))}
-                    </td>
-                    <td className="fw-bold">${product.purchasePrice?.toFixed(2)}</td>
-                    <td className="fw-bold text-success">${product.sellingPrice?.toFixed(2)}</td>
-                    <td className="text-center">
-                      <div className="d-flex flex-column align-items-center">
-                        <span className={`fw-bold ${product.quantity <= product.lowStockThreshold ? "text-danger" : ""}`}>
-                          {product.quantity} {product.unit}
-                        </span>
-                        {getStockStatus(product.quantity, product.lowStockThreshold)}
-                        {userRole === "admin" && (
-                          <button
-                            className="btn btn-sm btn-outline-secondary mt-1"
-                            onClick={() => setStockUpdate({ 
-                              show: true, 
-                              productId: product._id, 
-                              quantity: 0 
-                            })}
-                            title="Update Stock"
-                            style={{ fontSize: "0.7rem", padding: "0.1rem 0.3rem" }}
-                          >
-                            <i className="bi bi-arrow-clockwise"></i> Adjust
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                    <td className="text-center">
-                      <span className="badge bg-light text-dark border">
-                        {product.lowStockThreshold}
-                      </span>
-                    </td>
-                    <td className="text-center">
-                      <span className={`badge px-3 ${product.status === "active" ? "bg-success" : "bg-secondary"}`}>
-                        {product.status}
-                      </span>
-                    </td>
-                    {userRole === "admin" && (
-                      <td className="text-center pe-4">
-                        <div className="d-flex justify-content-center gap-2">
-                          <button
-                            className="btn btn-sm btn-outline-primary"
-                            onClick={() => {
-                              setEditingProduct(product);
-                              setShowProductForm(true);
-                            }}
-                            title="Edit"
-                          >
-                            <i className="bi bi-pencil-square"></i>
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={() => handleDeleteProduct(product._id)}
-                            title="Delete"
-                          >
-                            <i className="bi bi-trash3"></i>
-                          </button>
+                  </tr>
+                ) : (
+                  filteredProducts.map((product) => (
+                    <tr key={product._id}>
+                      <td className="ps-4">
+                        <div className="d-flex flex-column">
+                          <div className={`fw-bold ${product.quantity <= product.lowStockThreshold ? "text-danger" : ""}`}>
+                            {product.name}
+                            {/* Highlight search matches */}
+                            {searchQuery && (product.name.toLowerCase().includes(searchQuery.toLowerCase()) && (
+                              <span className="badge bg-info-subtle text-info ms-2">Name match</span>
+                            ))}
+                          </div>
+                          {product.description && (
+                            <div className="small text-muted mt-1" style={{ maxWidth: "250px" }}>
+                              {product.description.length > 40 
+                                ? `${product.description.substring(0, 40)}...` 
+                                : product.description}
+                            </div>
+                          )}
                         </div>
                       </td>
-                    )}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                      <td>
+                        <span className="badge bg-light text-dark border">
+                          {product.sku}
+                          {/* Highlight search matches */}
+                          {searchQuery && (product.sku.toLowerCase().includes(searchQuery.toLowerCase()) && (
+                            <span className="ms-1 text-success"><i className="bi bi-check-circle"></i></span>
+                          ))}
+                        </span>
+                      </td>
+                      <td>
+                        {product.category?.name || (
+                          <span className="text-muted small">No category</span>
+                        )}
+                        {/* Highlight search matches */}
+                        {searchQuery && (product.category?.name?.toLowerCase().includes(searchQuery.toLowerCase()) && (
+                          <span className="badge bg-warning-subtle text-warning ms-2">Category match</span>
+                        ))}
+                      </td>
+                      <td className="fw-bold">${product.purchasePrice?.toFixed(2)}</td>
+                      <td className="fw-bold text-success">${product.sellingPrice?.toFixed(2)}</td>
+                      <td className="text-center">
+                        <div className="d-flex flex-column align-items-center">
+                          <span className={`fw-bold ${product.quantity <= product.lowStockThreshold ? "text-danger" : ""}`}>
+                            {product.quantity} {product.unit}
+                          </span>
+                          {getStockStatus(product.quantity, product.lowStockThreshold)}
+                          {userRole === "admin" && (
+                            <button
+                              className="btn btn-sm btn-outline-secondary mt-1"
+                              onClick={() => setStockUpdate({ 
+                                show: true, 
+                                productId: product._id, 
+                                quantity: 0 
+                              })}
+                              title="Update Stock"
+                              style={{ fontSize: "0.7rem", padding: "0.1rem 0.3rem" }}
+                            >
+                              <i className="bi bi-arrow-clockwise"></i> Adjust
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                      <td className="text-center">
+                        <span className="badge bg-light text-dark border">
+                          {product.lowStockThreshold}
+                        </span>
+                      </td>
+                      <td className="text-center">
+                        <span className={`badge px-3 ${product.status === "active" ? "bg-success" : "bg-secondary"}`}>
+                          {product.status}
+                        </span>
+                      </td>
+                      {userRole === "admin" && (
+                        <td className="text-center pe-4">
+                          <div className="d-flex justify-content-center gap-2">
+                            <button
+                              className="btn btn-sm btn-outline-primary"
+                              onClick={() => {
+                                setEditingProduct(product);
+                                setShowProductForm(true);
+                              }}
+                              title="Edit"
+                            >
+                              <i className="bi bi-pencil-square"></i>
+                            </button>
+                            <button
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => handleDeleteProduct(product._id)}
+                              title="Delete"
+                            >
+                              <i className="bi bi-trash3"></i>
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -376,31 +543,6 @@ const Inventory = () => {
           </div>
         </div>
       )}
-
-      {/* <style>
-        {`
-          .table-hover tbody tr:hover {
-            background-color: rgba(0,0,0,0.03);
-          }
-          .action-icon {
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 1.2rem;
-          }
-          .action-icon:hover {
-            transform: scale(1.15);
-          }
-          .table th, .table td {
-            vertical-align: middle !important;
-          }
-          .badge {
-            font-weight: 500;
-          }
-          .search-highlight {
-            background-color: #fff3cd !important;
-          }
-        `}
-      </style> */}
     </div>
   );
 };

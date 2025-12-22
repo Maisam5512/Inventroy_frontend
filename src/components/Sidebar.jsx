@@ -1,7 +1,29 @@
-// Update src/components/Sidebar.jsx
 import React from "react";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 
-const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
+const Sidebar = ({ onLogout }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Navigation items configuration
+  const navItems = [
+    { path: "/dashboard", label: "Dashboard", icon: "bi-speedometer2" },
+    { path: "/inventory", label: "Inventory Items", icon: "bi-box-seam" },
+    { path: "/purchase-orders", label: "Purchase Orders", icon: "bi-receipt" },
+    { path: "/invoices", label: "Invoices", icon: "bi-receipt-cutoff" },
+    { path: "/stock-movements", label: "Stock Movements", icon: "bi-arrow-left-right" },
+  ];
+
+  const handleMobileNavClick = (path) => {
+    navigate(path);
+    // Close mobile sidebar
+    const offcanvas = document.getElementById('mobileSidebar');
+    const bsOffcanvas = window.bootstrap?.Offcanvas?.getInstance(offcanvas);
+    if (bsOffcanvas) {
+      bsOffcanvas.hide();
+    }
+  };
+
   return (
     <>
       {/* DESKTOP SIDEBAR */}
@@ -14,66 +36,21 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
         </div>
 
         <nav className="nav flex-column p-3 gap-2 flex-grow-1">
-          <button
-            className={`btn text-start d-flex align-items-center gap-2 ${
-              activeTab === "dashboard"
-                ? "btn-danger"
-                : "btn-dark text-white-50"
-            }`}
-            onClick={() => setActiveTab("dashboard")}
-          >
-            <i className="bi bi-speedometer2"></i>
-            Dashboard
-          </button>
-
-          <button
-            className={`btn text-start d-flex align-items-center gap-2 ${
-              activeTab === "inventory"
-                ? "btn-danger"
-                : "btn-dark text-white-50"
-            }`}
-            onClick={() => setActiveTab("inventory")}
-          >
-            <i className="bi bi-box-seam"></i>
-            Inventory Items
-          </button>
-
-          <button
-            className={`btn text-start d-flex align-items-center gap-2 ${
-              activeTab === "purchase-orders"
-                ? "btn-danger"
-                : "btn-dark text-white-50"
-            }`}
-            onClick={() => setActiveTab("purchase-orders")}
-          >
-            <i className="bi bi-receipt"></i>
-            Purchase Orders
-          </button>
-
-          <button
-            className={`btn text-start d-flex align-items-center gap-2 ${
-              activeTab === "invoices"
-                ? "btn-danger"
-                : "btn-dark text-white-50"
-            }`}
-            onClick={() => setActiveTab("invoices")}
-          >
-            <i className="bi bi-receipt-cutoff"></i>
-            Invoices
-          </button>
-
-          {/* Added Stock Movements button */}
-          <button
-            className={`btn text-start d-flex align-items-center gap-2 ${
-              activeTab === "stock-movements"
-                ? "btn-danger"
-                : "btn-dark text-white-50"
-            }`}
-            onClick={() => setActiveTab("stock-movements")}
-          >
-            <i className="bi bi-arrow-left-right"></i>
-            Stock Movements
-          </button>
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) => 
+                `btn text-start d-flex align-items-center gap-2 ${
+                  isActive ? "btn-danger" : "btn-dark text-white-50"
+                }`
+              }
+              end={item.path === "/dashboard"}
+            >
+              <i className={`bi ${item.icon}`}></i>
+              {item.label}
+            </NavLink>
+          ))}
         </nav>
 
         <div className="p-3 border-top border-secondary">
@@ -104,78 +81,29 @@ const Sidebar = ({ activeTab, setActiveTab, onLogout }) => {
 
         <div className="offcanvas-body p-3">
           <nav className="nav flex-column gap-2">
-            <button
-              className={`btn text-start d-flex align-items-center gap-2 ${
-                activeTab === "dashboard"
-                  ? "btn-danger"
-                  : "btn-dark text-white-50"
-              }`}
-              data-bs-dismiss="offcanvas"
-              onClick={() => setActiveTab("dashboard")}
-            >
-              <i className="bi bi-speedometer2"></i>
-              Dashboard
-            </button>
-
-            <button
-              className={`btn text-start d-flex align-items-center gap-2 ${
-                activeTab === "inventory"
-                  ? "btn-danger"
-                  : "btn-dark text-white-50"
-              }`}
-              data-bs-dismiss="offcanvas"
-              onClick={() => setActiveTab("inventory")}
-            >
-              <i className="bi bi-box-seam"></i>
-              Inventory Items
-            </button>
-
-            <button
-              className={`btn text-start d-flex align-items-center gap-2 ${
-                activeTab === "purchase-orders"
-                  ? "btn-danger"
-                  : "btn-dark text-white-50"
-              }`}
-              data-bs-dismiss="offcanvas"
-              onClick={() => setActiveTab("purchase-orders")}
-            >
-              <i className="bi bi-receipt"></i>
-              Purchase Orders
-            </button>
-
-            <button
-              className={`btn text-start d-flex align-items-center gap-2 ${
-                activeTab === "invoices"
-                  ? "btn-danger"
-                  : "btn-dark text-white-50"
-              }`}
-              data-bs-dismiss="offcanvas"
-              onClick={() => setActiveTab("invoices")}
-            >
-              <i className="bi bi-receipt-cutoff"></i>
-              Invoices
-            </button>
-
-            {/* Added Stock Movements button for mobile */}
-            <button
-              className={`btn text-start d-flex align-items-center gap-2 ${
-                activeTab === "stock-movements"
-                  ? "btn-danger"
-                  : "btn-dark text-white-50"
-              }`}
-              data-bs-dismiss="offcanvas"
-              onClick={() => setActiveTab("stock-movements")}
-            >
-              <i className="bi bi-arrow-left-right"></i>
-              Stock Movements
-            </button>
+            {navItems.map((item) => (
+              <button
+                key={item.path}
+                className={`btn text-start d-flex align-items-center gap-2 ${
+                  location.pathname === item.path ? "btn-danger" : "btn-dark text-white-50"
+                }`}
+                onClick={() => handleMobileNavClick(item.path)}
+              >
+                <i className={`bi ${item.icon}`}></i>
+                {item.label}
+              </button>
+            ))}
           </nav>
 
           <div className="mt-4 border-top border-secondary pt-3">
             <button
               className="btn btn-outline-light w-100 d-flex align-items-center gap-2"
-              onClick={onLogout}
-              data-bs-dismiss="offcanvas"
+              onClick={() => {
+                onLogout();
+                const offcanvas = document.getElementById('mobileSidebar');
+                const bsOffcanvas = window.bootstrap?.Offcanvas?.getInstance(offcanvas);
+                if (bsOffcanvas) bsOffcanvas.hide();
+              }}
             >
               <i className="bi bi-box-arrow-right"></i>
               Sign Out

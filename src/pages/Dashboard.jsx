@@ -80,45 +80,75 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="container-fluid py-4 bg-light min-vh-100">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h5 className="fw-bold mb-0">Dashboard Overview</h5>
+    <div className="container-fluid py-3 py-md-4 bg-light min-vh-100">
+      {/* HEADER WITH ACTIONS - MOBILE OPTIMIZED */}
+      <div className="row align-items-center mb-3 mb-md-4">
+        <div className="col-12 col-md-6">
+          <h5 className="fw-bold mb-2 mb-md-0">Dashboard Overview</h5>
+        </div>
+        
         {userRole === "admin" && (
-          <div className="d-flex gap-2">
-            <button
-              className="btn btn-primary btn-sm d-flex align-items-center gap-1"
-              onClick={() => setShowVendorForm(true)}
-            >
-              <i className="bi bi-person-plus"></i> Add Vendor
-            </button>
-            <button
-              className="btn btn-success btn-sm d-flex align-items-center gap-1"
-              onClick={() => setShowCategoryForm(true)}
-            >
-              <i className="bi bi-folder-plus"></i> Add Category
-            </button>
-            <button
-              className="btn btn-info btn-sm d-flex align-items-center gap-1"
-              onClick={() => setShowStaffForm(true)}
-            >
-              <i className="bi bi-person-plus"></i> Add Member
-            </button>
+          <div className="col-12 col-md-6">
+            <div className="d-flex flex-wrap gap-2 justify-content-md-end">
+              {/* MOBILE: Icon-only buttons */}
+              <button
+                className="btn btn-primary btn-sm d-flex align-items-center gap-1 d-md-none"
+                onClick={() => setShowVendorForm(true)}
+                title="Add Vendor"
+              >
+                <i className="bi bi-person-plus fs-6"></i>
+              </button>
+              <button
+                className="btn btn-success btn-sm d-flex align-items-center gap-1 d-md-none"
+                onClick={() => setShowCategoryForm(true)}
+                title="Add Category"
+              >
+                <i className="bi bi-folder-plus fs-6"></i>
+              </button>
+              <button
+                className="btn btn-info btn-sm d-flex align-items-center gap-1 d-md-none"
+                onClick={() => setShowStaffForm(true)}
+                title="Add Staff Member"
+              >
+                <i className="bi bi-person-plus fs-6"></i>
+              </button>
+              
+              {/* DESKTOP: Full text buttons */}
+              <button
+                className="btn btn-primary btn-sm d-none d-md-flex align-items-center gap-1"
+                onClick={() => setShowVendorForm(true)}
+              >
+                <i className="bi bi-person-plus"></i> Add Vendor
+              </button>
+              <button
+                className="btn btn-success btn-sm d-none d-md-flex align-items-center gap-1"
+                onClick={() => setShowCategoryForm(true)}
+              >
+                <i className="bi bi-folder-plus"></i> Add Category
+              </button>
+              <button
+                className="btn btn-info btn-sm d-none d-md-flex align-items-center gap-1"
+                onClick={() => setShowStaffForm(true)}
+              >
+                <i className="bi bi-person-plus"></i> Add Member
+              </button>
+            </div>
           </div>
         )}
       </div>
 
-      {/* SALES ACTIVITY */}
-      <div className="row g-3 mb-4">
+      {/* STATS CARDS - MOBILE OPTIMIZED */}
+      <div className="row g-2 g-md-3 mb-3 mb-md-4">
         {stats.map((item, i) => (
-          <div key={i} className="col-6 col-md-3">
+          <div key={i} className="col-6 col-sm-3">
             <div
               className={`card border-0 shadow-sm dashboard-card border-top border-${item.color} border-4 h-100`}
             >
-              <div className="card-body text-center">
-                <h2 className={`fw-light text-${item.color}`}>
+              <div className="card-body text-center p-2 p-md-3">
+                <h2 className={`fw-light text-${item.color} mb-1 mb-md-2`}>
                   {item.value}
                 </h2>
-                <div className="small text-muted fw-bold text-uppercase mt-2">
+                <div className="small text-muted fw-bold text-uppercase" style={{ fontSize: "0.7rem" }}>
                   {item.label}
                 </div>
               </div>
@@ -127,11 +157,12 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <div className="row g-4">
-        {/* PRODUCT DETAILS */}
-        <div className="col-md-7">
+      {/* MAIN CONTENT ROW */}
+      <div className="row g-3 g-md-4">
+        {/* PRODUCT DETAILS - MOBILE OPTIMIZED */}
+        <div className="col-12 col-md-7 order-1 order-md-1">
           <div className="card border-0 shadow-sm h-100">
-            <div className="card-body">
+            <div className="card-body p-3 p-md-4">
               <h6 className="fw-bold text-muted text-uppercase mb-3 border-bottom pb-2">
                 <i className="bi bi-box-seam me-2"></i>Product Details
               </h6>
@@ -156,57 +187,67 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* INVENTORY SUMMARY */}
-        <div className="col-md-5">
+        {/* INVENTORY SUMMARY - MOBILE OPTIMIZED */}
+        <div className="col-12 col-md-5 order-2 order-md-2">
           <div className="card border-0 shadow-sm h-100">
-            <div className="card-body">
+            <div className="card-body p-3 p-md-4">
               <h6 className="fw-bold text-muted text-uppercase mb-3 border-bottom pb-2">
                 <i className="bi bi-archive me-2"></i>Inventory Summary
               </h6>
 
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <span className="small text-muted">Quantity in Hand</span>
-                <span className="h4 fw-bold mb-0">10,458</span>
+                <span className="h5 h4-md fw-bold mb-0">10,458</span>
               </div>
 
               <div className="d-flex justify-content-between align-items-center">
                 <span className="small text-muted">
                   Quantity to be Received
                 </span>
-                <span className="h4 fw-bold mb-0">168</span>
+                <span className="h5 h4-md fw-bold mb-0">168</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Admin Only Sections */}
+      {/* Admin Only Sections - MOBILE OPTIMIZED */}
       {userRole === "admin" && (
-        <div className="row g-4 mt-3">
+        <div className="row g-3 g-md-4 mt-3">
           {/* Vendors List */}
-          <div className="col-md-4">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body">
-                <h6 className="fw-bold text-muted text-uppercase mb-3 border-bottom pb-2">
-                  <i className="bi bi-people me-2"></i>
-                  Vendors ({vendors.length})
+          <div className="col-12 col-md-4 order-3 order-md-1">
+            <div className="card border-0 shadow-sm h-100">
+              <div className="card-body p-3 p-md-4">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h6 className="fw-bold text-muted text-uppercase mb-0">
+                    <i className="bi bi-people me-2"></i>
+                    Vendors ({vendors.length})
+                  </h6>
                   {vendorsLoading && (
-                    <span className="spinner-border spinner-border-sm ms-2"></span>
+                    <span className="spinner-border spinner-border-sm"></span>
                   )}
-                </h6>
+                </div>
                 <div className="table-responsive" style={{ maxHeight: "200px" }}>
                   <table className="table table-sm table-hover mb-0">
                     <thead>
                       <tr>
                         <th className="small text-muted">Name</th>
-                        <th className="small text-muted">Company</th>
+                        <th className="small text-muted d-none d-sm-table-cell">Company</th>
+                        <th className="small text-muted d-sm-none">Co.</th>
                       </tr>
                     </thead>
                     <tbody>
                       {vendors.slice(0, 5).map((vendor) => (
                         <tr key={vendor._id}>
-                          <td className="small">{vendor.name}</td>
-                          <td className="small">{vendor.companyName}</td>
+                          <td className="small text-truncate" style={{ maxWidth: "100px" }}>
+                            {vendor.name}
+                          </td>
+                          <td className="small text-truncate d-none d-sm-table-cell" style={{ maxWidth: "120px" }}>
+                            {vendor.companyName}
+                          </td>
+                          <td className="small text-truncate d-sm-none" style={{ maxWidth: "80px" }}>
+                            {vendor.companyName}
+                          </td>
                         </tr>
                       ))}
                       {vendors.length === 0 && !vendorsLoading && (
@@ -224,16 +265,18 @@ const Dashboard = () => {
           </div>
 
           {/* Categories List */}
-          <div className="col-md-4">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body">
-                <h6 className="fw-bold text-muted text-uppercase mb-3 border-bottom pb-2">
-                  <i className="bi bi-tags me-2"></i>
-                  Categories ({categories.length})
+          <div className="col-12 col-md-4 order-4 order-md-2">
+            <div className="card border-0 shadow-sm h-100">
+              <div className="card-body p-3 p-md-4">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h6 className="fw-bold text-muted text-uppercase mb-0">
+                    <i className="bi bi-tags me-2"></i>
+                    Categories ({categories.length})
+                  </h6>
                   {categoriesLoading && (
-                    <span className="spinner-border spinner-border-sm ms-2"></span>
+                    <span className="spinner-border spinner-border-sm"></span>
                   )}
-                </h6>
+                </div>
                 <div className="table-responsive" style={{ maxHeight: "200px" }}>
                   <table className="table table-sm table-hover mb-0">
                     <thead>
@@ -245,7 +288,9 @@ const Dashboard = () => {
                     <tbody>
                       {categories.slice(0, 5).map((category) => (
                         <tr key={category._id}>
-                          <td className="small">{category.name}</td>
+                          <td className="small text-truncate" style={{ maxWidth: "150px" }}>
+                            {category.name}
+                          </td>
                           <td className="small">
                             <span className={`badge bg-${category.status === "active" ? "success" : "secondary"}`}>
                               {category.status}
@@ -268,16 +313,18 @@ const Dashboard = () => {
           </div>
 
           {/* Staff Members List */}
-          <div className="col-md-4">
-            <div className="card border-0 shadow-sm">
-              <div className="card-body">
-                <h6 className="fw-bold text-muted text-uppercase mb-3 border-bottom pb-2">
-                  <i className="bi bi-person-badge me-2"></i>
-                  Staff Members ({staffMembers.length})
+          <div className="col-12 col-md-4 order-5 order-md-3">
+            <div className="card border-0 shadow-sm h-100">
+              <div className="card-body p-3 p-md-4">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h6 className="fw-bold text-muted text-uppercase mb-0">
+                    <i className="bi bi-person-badge me-2"></i>
+                    Staff Members ({staffMembers.length})
+                  </h6>
                   {staffLoading && (
-                    <span className="spinner-border spinner-border-sm ms-2"></span>
+                    <span className="spinner-border spinner-border-sm"></span>
                   )}
-                </h6>
+                </div>
                 <div className="table-responsive" style={{ maxHeight: "200px" }}>
                   <table className="table table-sm table-hover mb-0">
                     <thead>
@@ -289,7 +336,9 @@ const Dashboard = () => {
                     <tbody>
                       {staffMembers.slice(0, 5).map((member) => (
                         <tr key={member._id}>
-                          <td className="small">{member.name}</td>
+                          <td className="small text-truncate" style={{ maxWidth: "150px" }}>
+                            {member.name}
+                          </td>
                           <td className="small">
                             <span className={`badge bg-${member.role === "admin" ? "danger" : "primary"}`}>
                               {member.role}
