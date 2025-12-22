@@ -11,7 +11,7 @@
 //   const [profitLossData, setProfitLossData] = useState(null);
   
 //   // Base URL
-//   const baseURL = "http://localhost:5000/api";
+//   const import.meta.env.VITE_API_BASE_URL = "http://localhost:5000/api";
 
 //   // Get auth token
 //   const getAuthToken = () => {
@@ -24,7 +24,7 @@
     
 //     setLoading(true);
 //     try {
-//       const res = await fetch(`${baseURL}/stockMovements`, {
+//       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stockMovements`, {
 //         headers: {
 //           Authorization: `Bearer ${getAuthToken()}`,
 //         },
@@ -52,7 +52,7 @@
 
 //     setLoading(true);
 //     try {
-//       const res = await fetch(`${baseURL}/stockMovements/adjust`, {
+//       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stockMovements/adjust`, {
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -88,7 +88,7 @@
 
 //     setLoading(true);
 //     try {
-//       const res = await fetch(`${baseURL}/stockMovements/${productId}`, {
+//       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stockMovements/${productId}`, {
 //         headers: {
 //           Authorization: `Bearer ${getAuthToken()}`,
 //         },
@@ -120,7 +120,7 @@
 //     setLoading(true);
 //     try {
 //       const res = await fetch(
-//         `${baseURL}/stockMovements/report/stock?startDate=${startDate}&endDate=${endDate}`,
+//         `${import.meta.env.VITE_API_BASE_URL}/stockMovements/report/stock?startDate=${startDate}&endDate=${endDate}`,
 //         {
 //           headers: {
 //             Authorization: `Bearer ${getAuthToken()}`,
@@ -154,7 +154,7 @@
 
 //     setLoading(true);
 //     try {
-//       const res = await fetch(`${baseURL}/stockMovements/profit-loss`, {
+//       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stockMovements/profit-loss`, {
 //         method: "PATCH",
 //         headers: {
 //           Authorization: `Bearer ${getAuthToken()}`,
@@ -225,7 +225,6 @@ const useStockMovements = () => {
   const [profitLossData, setProfitLossData] = useState(null);
   
   // Base URL
-  const baseURL = "http://localhost:5000/api";
 
   // Get auth token
   const getAuthToken = () => {
@@ -238,7 +237,7 @@ const useStockMovements = () => {
     
     setLoading(true);
     try {
-      const res = await fetch(`${baseURL}/stockMovements`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stockMovements`, {
         headers: {
           Authorization: `Bearer ${getAuthToken()}`,
         },
@@ -266,7 +265,7 @@ const useStockMovements = () => {
 
     setLoading(true);
     try {
-      const res = await fetch(`${baseURL}/stockMovements/adjust`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stockMovements/adjust`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -302,7 +301,7 @@ const useStockMovements = () => {
 
     setLoading(true);
     try {
-      const res = await fetch(`${baseURL}/stockMovements/${productId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stockMovements/${productId}`, {
         headers: {
           Authorization: `Bearer ${getAuthToken()}`,
         },
@@ -334,7 +333,7 @@ const useStockMovements = () => {
     setLoading(true);
     try {
       const res = await fetch(
-        `${baseURL}/stockMovements/report/stock?startDate=${startDate}&endDate=${endDate}`,
+        `${import.meta.env.VITE_API_BASE_URL}/stockMovements/report/stock?startDate=${startDate}&endDate=${endDate}`,
         {
           headers: {
             Authorization: `Bearer ${getAuthToken()}`,
@@ -368,7 +367,7 @@ const useStockMovements = () => {
 
     setLoading(true);
     try {
-      const res = await fetch(`${baseURL}/stockMovements/profit-loss`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/stockMovements/profit-loss`, {
         method: "PATCH",
         headers: {
           Authorization: `Bearer ${getAuthToken()}`,

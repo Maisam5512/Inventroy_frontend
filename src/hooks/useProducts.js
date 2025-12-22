@@ -25,7 +25,7 @@ export default function useProducts() {
     setLoading(true);
     try {
       // CORRECTED: Changed from /api/products to /api/product
-      const res = await fetch("http://localhost:5000/api/product", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -69,7 +69,7 @@ export default function useProducts() {
     setLoading(true);
     try {
       // CORRECTED: Changed from /api/products to /api/product
-      const res = await fetch("http://localhost:5000/api/product", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -109,7 +109,7 @@ export default function useProducts() {
     setLoading(true);
     try {
       // CORRECTED: Changed from /api/products/:id to /api/product/:id
-      const res = await fetch(`http://localhost:5000/api/product/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -149,7 +149,7 @@ export default function useProducts() {
     setLoading(true);
     try {
       // CORRECTED: Changed from /api/products/:id to /api/product/:id
-      const res = await fetch(`http://localhost:5000/api/product/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -187,7 +187,7 @@ export default function useProducts() {
     setLoading(true);
     try {
       // CORRECTED: Changed from /api/products/:id/stock to /api/product/:id/stock
-      const res = await fetch(`http://localhost:5000/api/product/${id}/stock`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product/${id}/stock`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

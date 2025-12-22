@@ -13,7 +13,7 @@ export default function useVendors() {
     
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/vendors", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/vendors`, {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
@@ -41,7 +41,7 @@ export default function useVendors() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/vendors", {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/vendors`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -77,7 +77,7 @@ export default function useVendors() {
 
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/vendors/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/vendors/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -113,7 +113,7 @@ export default function useVendors() {
 
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/vendors/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/vendors/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${user.token}`,

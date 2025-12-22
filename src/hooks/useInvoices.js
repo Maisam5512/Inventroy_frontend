@@ -9,7 +9,7 @@ const useInvoices = () => {
   const [loading, setLoading] = useState(false);
   
   // Base URL
-  const baseURL = "http://localhost:5000/api";
+  const baseURL = import.meta.env.VITE_API_BASE_URL;
 
   // Get auth token
   const getAuthToken = () => {

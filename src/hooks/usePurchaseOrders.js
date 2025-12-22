@@ -154,14 +154,6 @@
 // export default usePurchaseOrders;
 
 
-
-
-
-
-
-
-
-
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import useAuth from "./useAuth";
@@ -172,7 +164,7 @@ const usePurchaseOrders = () => {
   const [loading, setLoading] = useState(false);
   
   // Use hardcoded base URL instead of process.env
-  const baseURL = "http://localhost:5000/api";
+  const baseURL = import.meta.env.VITE_API_BASE_URL;
 
   // Get auth token
   const getAuthToken = () => {
