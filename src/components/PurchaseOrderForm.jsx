@@ -120,7 +120,7 @@ const PurchaseOrderForm = ({ onSubmit, onClose, loading, initialValues }) => {
         <option value="">Select Product</option>
         {products.map((product) => (
           <option key={product._id} value={product._id}>
-            {product.name} (SKU: {product.sku}) - ${product.purchasePrice}
+            {product.name} (SKU: {product.sku}) - ₹{product.purchasePrice}
           </option>
         ))}
       </select>
@@ -225,7 +225,7 @@ const PurchaseOrderForm = ({ onSubmit, onClose, loading, initialValues }) => {
                         <div className="bg-light p-3 rounded">
                           <div className="small text-muted">Total Amount</div>
                           <h4 className="fw-bold text-danger mb-0">
-                            ${calculateTotal(values.products).toFixed(2)}
+                            ₹{calculateTotal(values.products).toFixed(2)}
                           </h4>
                         </div>
                       </div>
@@ -286,7 +286,7 @@ const PurchaseOrderForm = ({ onSubmit, onClose, loading, initialValues }) => {
                                     Purchase Price *
                                   </label>
                                   <div className="input-group">
-                                    <span className="input-group-text">$</span>
+                                    <span className="input-group-text">₹</span>
                                     <Field
                                       type="number"
                                       step="0.01"
@@ -320,7 +320,7 @@ const PurchaseOrderForm = ({ onSubmit, onClose, loading, initialValues }) => {
                                   <div className="bg-white p-2 rounded border d-flex justify-content-between align-items-center">
                                     <span className="small text-muted">Subtotal: </span>
                                     <span className="fw-bold">
-                                      ${((item.quantity || 0) * (item.purchasePrice || 0)).toFixed(2)}
+                                      ₹{((item.quantity || 0) * (item.purchasePrice || 0)).toFixed(2)}
                                     </span>
                                   </div>
                                 </div>

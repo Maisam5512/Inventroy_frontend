@@ -194,7 +194,7 @@ const ProductForm = ({ onSubmit, onClose, loading, initialValues = null }) => {
                         Purchase Price *
                       </label>
                       <div className="input-group input-group-sm">
-                        <span className="input-group-text">$</span>
+                        <span className="input-group-text">₹</span>
                         <Field
                           type="number"
                           name="purchasePrice"
@@ -213,7 +213,7 @@ const ProductForm = ({ onSubmit, onClose, loading, initialValues = null }) => {
                         Selling Price *
                       </label>
                       <div className="input-group input-group-sm">
-                        <span className="input-group-text">$</span>
+                        <span className="input-group-text">₹</span>
                         <Field
                           type="number"
                           name="sellingPrice"

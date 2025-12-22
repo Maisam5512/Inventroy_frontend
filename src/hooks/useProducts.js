@@ -24,7 +24,6 @@ export default function useProducts() {
     
     setLoading(true);
     try {
-      // CORRECTED: Changed from /api/products to /api/product
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -68,7 +67,6 @@ export default function useProducts() {
 
     setLoading(true);
     try {
-      // CORRECTED: Changed from /api/products to /api/product
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product`, {
         method: "POST",
         headers: {
@@ -108,7 +106,6 @@ export default function useProducts() {
 
     setLoading(true);
     try {
-      // CORRECTED: Changed from /api/products/:id to /api/product/:id
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product/${id}`, {
         method: "PUT",
         headers: {
@@ -137,7 +134,7 @@ export default function useProducts() {
     }
   };
 
-  // Delete product (soft delete)
+  // Delete product (hard delete)
   const deleteProduct = async (id) => {
     const token = getToken();
     
@@ -148,7 +145,6 @@ export default function useProducts() {
 
     setLoading(true);
     try {
-      // CORRECTED: Changed from /api/products/:id to /api/product/:id
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product/${id}`, {
         method: "DELETE",
         headers: {
@@ -159,7 +155,7 @@ export default function useProducts() {
       const data = await res.json();
       
       if (res.ok) {
-        toast.success("Product deactivated successfully!");
+        toast.success("Product permanently deleted!");
         await fetchProducts(); // Refresh the list
         return { success: true, data };
       } else {
@@ -169,6 +165,44 @@ export default function useProducts() {
     } catch (error) {
       console.error("Error deleting product:", error);
       toast.error("Error deleting product");
+      return { success: false, message: error.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Toggle product status (active/inactive)
+  const toggleProductStatus = async (id) => {
+    const token = getToken();
+    
+    if (!token) {
+      toast.error("Authentication required");
+      return { success: false };
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product/${id}/toggle-status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      
+      if (res.ok) {
+        toast.success(`Product ${data.status === "active" ? "enabled" : "disabled"} successfully!`);
+        await fetchProducts(); // Refresh the list
+        return { success: true, data };
+      } else {
+        toast.error(data.message || "Failed to toggle product status");
+        return { success: false, message: data.message };
+      }
+    } catch (error) {
+      console.error("Error toggling product status:", error);
+      toast.error("Error toggling product status");
       return { success: false, message: error.message };
     } finally {
       setLoading(false);
@@ -186,7 +220,6 @@ export default function useProducts() {
 
     setLoading(true);
     try {
-      // CORRECTED: Changed from /api/products/:id/stock to /api/product/:id/stock
       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/product/${id}/stock`, {
         method: "PATCH",
         headers: {
@@ -222,6 +255,7 @@ export default function useProducts() {
     createProduct,
     updateProduct,
     deleteProduct,
+    toggleProductStatus,
     updateStock,
   };
 }

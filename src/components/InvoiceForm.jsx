@@ -4,7 +4,7 @@ import { Formik, Form, Field, ErrorMessage, FieldArray } from "formik";
 import * as Yup from "yup";
 import useProducts from "../hooks/useProducts";
 
-const InvoiceForm = ({ onSubmit, onClose, loading }) => {
+const InvoiceForm = ({ onSubmit, onClose, loading, initialData, isEditing }) => {
   const { products, fetchProducts } = useProducts();
   const [isLoadingData, setIsLoadingData] = useState(true);
 
@@ -34,10 +34,24 @@ const InvoiceForm = ({ onSubmit, onClose, loading }) => {
   });
 
   const initialFormValues = {
-    invoiceNumber: `INV-${Math.floor(1000 + Math.random() * 9000)}`,
-    customerName: "",
-    paymentMethod: "cash",
-    products: [{ product: "", quantity: 1, sellingPrice: 0 }],
+    invoiceNumber: initialData?.invoiceNumber || `INV-${Math.floor(1000 + Math.random() * 9000)}`,
+    customerName: initialData?.customerName || "",
+    paymentMethod: initialData?.paymentMethod || "cash",
+    products: initialData?.products?.map(item => ({
+      product: item.product?._id || item.product || "",
+      quantity: item.quantity || 1,
+      sellingPrice: item.sellingPrice || 0,
+    })) || [{ product: "", quantity: 1, sellingPrice: 0 }],
+  };
+
+  // Helper function to format currency to Indian Rupees
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
   };
 
   const calculateTotal = (products) => {
@@ -67,7 +81,7 @@ const InvoiceForm = ({ onSubmit, onClose, loading }) => {
         const product = getProductById(productId);
         if (product) {
           form.setFieldValue(`products.${index}.sellingPrice`, product.sellingPrice || 0);
-          // Validate stock availability
+          // Validate stock availability (only for new invoices or when editing, check against current quantity)
           if (product.quantity < form.values.products[index].quantity) {
             form.setFieldError(`products.${index}.quantity`, `Only ${product.quantity} available in stock`);
           }
@@ -81,11 +95,12 @@ const InvoiceForm = ({ onSubmit, onClose, loading }) => {
         value={field.value || ""}
         onChange={handleChange}
         onBlur={field.onBlur}
+        disabled={isEditing} // Disable product selection when editing
       >
         <option value="">Select Product</option>
         {products.map((product) => (
           <option key={product._id} value={product._id}>
-            {product.name} (SKU: {product.sku}) - Stock: {product.quantity} - Price: ${product.sellingPrice}
+            {product.name} (SKU: {product.sku}) - Stock: {product.quantity} - Price: {formatCurrency(product.sellingPrice)}
           </option>
         ))}
       </select>
@@ -98,8 +113,8 @@ const InvoiceForm = ({ onSubmit, onClose, loading }) => {
         <div className="modal-content">
           <div className="modal-header bg-light">
             <h5 className="modal-title fw-bold">
-              <i className="bi bi-receipt-cutoff me-2"></i>
-              Create Invoice
+              <i className={`bi ${isEditing ? "bi-pencil" : "bi-receipt-cutoff"} me-2`}></i>
+              {isEditing ? "Edit Invoice" : "Create Invoice"}
             </h5>
             <button
               type="button"
@@ -123,6 +138,7 @@ const InvoiceForm = ({ onSubmit, onClose, loading }) => {
               onSubmit={handleSubmit}
               validateOnChange={true}
               validateOnBlur={true}
+              enableReinitialize={true}
             >
               {({ values, setFieldValue, isSubmitting, errors, touched }) => (
                 <Form>
@@ -138,6 +154,7 @@ const InvoiceForm = ({ onSubmit, onClose, loading }) => {
                           name="invoiceNumber"
                           className="form-control"
                           placeholder="e.g., INV-1001"
+                          readOnly={isEditing} // Invoice number cannot be changed when editing
                         />
                         <ErrorMessage
                           name="invoiceNumber"
@@ -186,7 +203,7 @@ const InvoiceForm = ({ onSubmit, onClose, loading }) => {
                         <div className="bg-light p-3 rounded">
                           <div className="small text-muted">Total Amount</div>
                           <h4 className="fw-bold text-danger mb-0">
-                            ${calculateTotal(values.products).toFixed(2)}
+                            {formatCurrency(calculateTotal(values.products))}
                           </h4>
                         </div>
                       </div>
@@ -249,7 +266,7 @@ const InvoiceForm = ({ onSubmit, onClose, loading }) => {
                                         // Check stock availability
                                         if (selectedProduct && quantity > availableStock) {
                                           setFieldValue(`products.${index}.quantity`, availableStock);
-                                          setFieldError(`products.${index}.quantity`, `Only ${availableStock} available`);
+                                          // Formik will handle the error
                                         }
                                       }}
                                     />
@@ -265,7 +282,7 @@ const InvoiceForm = ({ onSubmit, onClose, loading }) => {
                                       Selling Price *
                                     </label>
                                     <div className="input-group">
-                                      <span className="input-group-text">$</span>
+                                      <span className="input-group-text">₹</span>
                                       <Field
                                         type="number"
                                         step="0.01"
@@ -300,7 +317,7 @@ const InvoiceForm = ({ onSubmit, onClose, loading }) => {
                                       <div>
                                         <span className="small text-muted">Subtotal: </span>
                                         <span className="fw-bold">
-                                          ${((item.quantity || 0) * (item.sellingPrice || 0)).toFixed(2)}
+                                          {formatCurrency((item.quantity || 0) * (item.sellingPrice || 0))}
                                         </span>
                                       </div>
                                       {selectedProduct && (
@@ -314,15 +331,17 @@ const InvoiceForm = ({ onSubmit, onClose, loading }) => {
                               );
                             })}
 
-                            <button
-                              type="button"
-                              className="btn btn-outline-primary btn-sm d-flex align-items-center gap-2"
-                              onClick={() => push({ product: "", quantity: 1, sellingPrice: 0 })}
-                              disabled={loading}
-                            >
-                              <i className="bi bi-plus-circle"></i>
-                              Add Another Product
-                            </button>
+                            {!isEditing && (
+                              <button
+                                type="button"
+                                className="btn btn-outline-primary btn-sm d-flex align-items-center gap-2"
+                                onClick={() => push({ product: "", quantity: 1, sellingPrice: 0 })}
+                                disabled={loading}
+                              >
+                                <i className="bi bi-plus-circle"></i>
+                                Add Another Product
+                              </button>
+                            )}
                           </>
                         )}
                       </FieldArray>
@@ -346,12 +365,12 @@ const InvoiceForm = ({ onSubmit, onClose, loading }) => {
                       {loading ? (
                         <>
                           <span className="spinner-border spinner-border-sm me-2"></span>
-                          Creating...
+                          {isEditing ? "Updating..." : "Creating..."}
                         </>
                       ) : (
                         <>
-                          <i className="bi bi-check-circle me-2"></i>
-                          Create Invoice
+                          <i className={`bi ${isEditing ? "bi-check-circle" : "bi-check-circle"} me-2`}></i>
+                          {isEditing ? "Update Invoice" : "Create Invoice"}
                         </>
                       )}
                     </button>
@@ -364,12 +383,6 @@ const InvoiceForm = ({ onSubmit, onClose, loading }) => {
       </div>
     </div>
   );
-};
-
-// Helper function for setFieldError
-const setFieldError = (field, message) => {
-  // This function would be available in Formik context
-  // We'll handle errors through Formik's built-in validation
 };
 
 export default InvoiceForm;

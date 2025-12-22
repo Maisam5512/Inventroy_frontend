@@ -77,6 +77,42 @@ const useInvoices = () => {
     }
   };
 
+  // Update invoice (only for pending invoices)
+  const updateInvoice = async (id, invoiceData) => {
+    if (!getAuthToken()) {
+      toast.error("Authentication required");
+      return { success: false };
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${baseURL}/invoices/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getAuthToken()}`,
+        },
+        body: JSON.stringify(invoiceData),
+      });
+
+      const data = await res.json();
+      
+      if (res.ok) {
+        toast.success("Invoice updated successfully!");
+        await fetchInvoices(); // Refresh the list
+        return { success: true, data };
+      } else {
+        toast.error(data.message || "Failed to update invoice");
+        return { success: false, message: data.message };
+      }
+    } catch (error) {
+      toast.error("Error updating invoice");
+      return { success: false, message: error.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Get single invoice
   const getInvoiceById = async (id) => {
     if (!getAuthToken()) {
@@ -188,6 +224,7 @@ const useInvoices = () => {
     loading,
     fetchInvoices,
     createInvoice,
+    updateInvoice,
     getInvoiceById,
     markAsPaid,
     cancelInvoice,

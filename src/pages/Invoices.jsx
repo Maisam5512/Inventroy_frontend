@@ -11,11 +11,13 @@ const Invoices = () => {
     loading: invoicesLoading,
     fetchInvoices,
     createInvoice,
+    updateInvoice,
     markAsPaid,
     cancelInvoice,
   } = useInvoices();
   
   const [showInvoiceForm, setShowInvoiceForm] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [paymentMethodFilter, setPaymentMethodFilter] = useState("all");
@@ -45,6 +47,16 @@ const Invoices = () => {
     return matchesSearch && matchesStatus && matchesPayment;
   });
 
+  // Helper function to format currency to Indian Rupees
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   // Handle invoice form submission
   const handleInvoiceSubmit = async (values) => {
     try {
@@ -58,14 +70,20 @@ const Invoices = () => {
         }))
       };
 
-      const result = await createInvoice(invoiceData);
+      let result;
+      if (editingInvoice) {
+        result = await updateInvoice(editingInvoice._id, invoiceData);
+      } else {
+        result = await createInvoice(invoiceData);
+      }
       
       if (result.success) {
-        toast.success("Invoice created successfully!");
+        toast.success(`Invoice ${editingInvoice ? 'updated' : 'created'} successfully!`);
         setShowInvoiceForm(false);
+        setEditingInvoice(null);
         fetchInvoices(); // Refresh the list
       } else {
-        toast.error(result.message || "Failed to create invoice");
+        toast.error(result.message || `Failed to ${editingInvoice ? 'update' : 'create'} invoice`);
       }
     } catch (error) {
       toast.error("An error occurred. Please try again.");
@@ -90,6 +108,22 @@ const Invoices = () => {
         toast.success("Invoice cancelled successfully!");
       }
     }
+  };
+
+  // Handle edit invoice (only for pending invoices)
+  const handleEditInvoice = (invoice) => {
+    if (invoice.status !== "pending") {
+      toast.error("Only pending invoices can be edited");
+      return;
+    }
+    
+    if (userRole !== "admin") {
+      toast.error("Only admin can edit invoices");
+      return;
+    }
+    
+    setEditingInvoice(invoice);
+    setShowInvoiceForm(true);
   };
 
   // Get status badge
@@ -196,7 +230,7 @@ const Invoices = () => {
             </div>
           </div>
           <div className="text-end">
-            <div className="fw-bold text-danger">${invoice.totalAmount?.toFixed(2)}</div>
+            <div className="fw-bold text-danger">{formatCurrency(invoice.totalAmount || 0)}</div>
             <div className="small text-muted">{invoice.products?.length} items</div>
           </div>
         </div>
@@ -238,6 +272,17 @@ const Invoices = () => {
           </div>
           <div className="col-6">
             <div className="d-flex justify-content-end gap-2">
+              {invoice.status === "pending" && userRole === "admin" && (
+                <button
+                  className="btn btn-sm btn-outline-primary"
+                  onClick={() => handleEditInvoice(invoice)}
+                  title="Edit Invoice"
+                  disabled={invoicesLoading}
+                >
+                  <i className="bi bi-pencil"></i>
+                </button>
+              )}
+              
               {invoice.status === "pending" && (
                 <>
                   <button
@@ -370,7 +415,10 @@ const Invoices = () => {
             {/* New Invoice Button for Mobile */}
             <button 
               className="btn btn-danger fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
-              onClick={() => setShowInvoiceForm(true)}
+              onClick={() => {
+                setEditingInvoice(null);
+                setShowInvoiceForm(true);
+              }}
               disabled={invoicesLoading}
             >
               {invoicesLoading ? (
@@ -449,7 +497,10 @@ const Invoices = () => {
           {/* New Invoice Button - WEB VIEW */}
           <button 
             className="btn btn-danger fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 flex-shrink-0"
-            onClick={() => setShowInvoiceForm(true)}
+            onClick={() => {
+              setEditingInvoice(null);
+              setShowInvoiceForm(true);
+            }}
             style={{ minWidth: "150px", height: "38px" }}
             disabled={invoicesLoading}
           >
@@ -470,7 +521,7 @@ const Invoices = () => {
           { label: "Total Invoices", value: stats.total, color: "primary", icon: "bi-receipt" },
           { label: "Pending", value: stats.pending, color: "warning", icon: "bi-clock" },
           { label: "Paid", value: stats.paid, color: "success", icon: "bi-check-circle" },
-          { label: "Total Revenue", value: `$${stats.totalRevenue.toLocaleString()}`, color: "danger", icon: "bi-currency-dollar" },
+          { label: "Total Revenue", value: formatCurrency(stats.totalRevenue), color: "danger", icon: "bi-currency-rupee" },
         ].map((stat, i) => (
           <div key={i} className="col-6 col-sm-3">
             <div className={`card border-0 shadow-sm dashboard-card border-top border-${stat.color} border-4 h-100`}>
@@ -620,7 +671,7 @@ const Invoices = () => {
                       </td>
                       <td>
                         <div className="fw-bold text-danger">
-                          ${invoice.totalAmount?.toFixed(2)}
+                          {formatCurrency(invoice.totalAmount || 0)}
                         </div>
                         <div className="small text-muted">
                           {invoice.products?.length} items
@@ -637,6 +688,17 @@ const Invoices = () => {
                       </td>
                       <td className="text-center pe-4">
                         <div className="d-flex justify-content-center gap-2">
+                          {invoice.status === "pending" && userRole === "admin" && (
+                            <button
+                              className="btn btn-sm btn-outline-primary"
+                              onClick={() => handleEditInvoice(invoice)}
+                              title="Edit Invoice"
+                              disabled={invoicesLoading}
+                            >
+                              <i className="bi bi-pencil-square"></i>
+                            </button>
+                          )}
+                          
                           {invoice.status === "pending" && (
                             <>
                               <button
@@ -684,8 +746,13 @@ const Invoices = () => {
       {showInvoiceForm && (
         <InvoiceForm
           onSubmit={handleInvoiceSubmit}
-          onClose={() => setShowInvoiceForm(false)}
+          onClose={() => {
+            setShowInvoiceForm(false);
+            setEditingInvoice(null);
+          }}
           loading={invoicesLoading}
+          initialData={editingInvoice}
+          isEditing={!!editingInvoice}
         />
       )}
     </div>

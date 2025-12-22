@@ -13,6 +13,7 @@ const Inventory = () => {
     createProduct, 
     updateProduct, 
     deleteProduct,
+    toggleProductStatus,
     updateStock 
   } = useProducts();
   
@@ -21,6 +22,7 @@ const Inventory = () => {
   const [stockUpdate, setStockUpdate] = useState({ show: false, productId: null, quantity: 0 });
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [deletingItem, setDeletingItem] = useState({ type: null, id: null, name: null });
 
   // Get user role from response
   const userData = user?.user || user;
@@ -58,13 +60,30 @@ const Inventory = () => {
     }
   };
 
-  // Handle delete product
-  const handleDeleteProduct = async (productId) => {
-    if (window.confirm("Are you sure you want to deactivate this product?")) {
-      const result = await deleteProduct(productId);
+  // Handle delete confirmation
+  const handleDeleteClick = (id, name) => {
+    setDeletingItem({ type: 'product', id, name });
+  };
+
+  // Handle confirm delete
+  const handleConfirmDelete = async () => {
+    const { id } = deletingItem;
+    
+    try {
+      const result = await deleteProduct(id);
       if (result.success) {
-        toast.success("Product deactivated successfully!");
+        setDeletingItem({ type: null, id: null, name: null });
       }
+    } catch (error) {
+      console.error('Delete error:', error);
+    }
+  };
+
+  // Handle toggle product status
+  const handleToggleStatus = async (id) => {
+    const result = await toggleProductStatus(id);
+    if (result.success) {
+      toast.success(`Product status updated to ${result.data.status}`);
     }
   };
 
@@ -98,6 +117,16 @@ const Inventory = () => {
   // Clear search
   const clearSearch = () => {
     setSearchQuery("");
+  };
+
+  // Format currency to Indian Rupees
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
   };
 
   // Mobile view product card
@@ -139,11 +168,23 @@ const Inventory = () => {
                 </li>
                 <li>
                   <button 
+                    className="dropdown-item text-info"
+                    onClick={() => handleToggleStatus(product._id)}
+                  >
+                    <i className={`bi ${product.status === "active" ? "bi-pause-circle" : "bi-play-circle"} me-2`}></i>
+                    {product.status === "active" ? "Deactivate" : "Activate"}
+                  </button>
+                </li>
+                <li>
+                  <button 
                     className="dropdown-item text-danger"
-                    onClick={() => handleDeleteProduct(product._id)}
+                    onClick={() => handleDeleteClick(product._id, product.name)}
                   >
                     <i className="bi bi-trash3 me-2"></i> Delete
                   </button>
+                </li>
+                <li>
+                  <hr className="dropdown-divider" />
                 </li>
                 <li>
                   <button 
@@ -176,11 +217,11 @@ const Inventory = () => {
         <div className="row g-2 mb-2">
           <div className="col-6">
             <div className="small text-muted">Purchase Price</div>
-            <div className="fw-bold">${product.purchasePrice?.toFixed(2)}</div>
+            <div className="fw-bold">{formatCurrency(product.purchasePrice)}</div>
           </div>
           <div className="col-6">
             <div className="small text-muted">Selling Price</div>
-            <div className="fw-bold text-success">${product.sellingPrice?.toFixed(2)}</div>
+            <div className="fw-bold text-success">{formatCurrency(product.sellingPrice)}</div>
           </div>
         </div>
 
@@ -198,6 +239,13 @@ const Inventory = () => {
             <div className="small text-muted">Low Stock</div>
             <div className="fw-semibold">{product.lowStockThreshold}</div>
           </div>
+        </div>
+
+        <div className="mt-2">
+          <div className="small text-muted">Status</div>
+          <span className={`badge px-3 ${product.status === "active" ? "bg-success" : "bg-secondary"}`}>
+            {product.status}
+          </span>
         </div>
       </div>
     </div>
@@ -413,8 +461,8 @@ const Inventory = () => {
                           <span className="badge bg-warning-subtle text-warning ms-2">Category match</span>
                         ))}
                       </td>
-                      <td className="fw-bold">${product.purchasePrice?.toFixed(2)}</td>
-                      <td className="fw-bold text-success">${product.sellingPrice?.toFixed(2)}</td>
+                      <td className="fw-bold">{formatCurrency(product.purchasePrice)}</td>
+                      <td className="fw-bold text-success">{formatCurrency(product.sellingPrice)}</td>
                       <td className="text-center">
                         <div className="d-flex flex-column align-items-center">
                           <span className={`fw-bold ${product.quantity <= product.lowStockThreshold ? "text-danger" : ""}`}>
@@ -461,8 +509,15 @@ const Inventory = () => {
                               <i className="bi bi-pencil-square"></i>
                             </button>
                             <button
+                              className={`btn btn-sm ${product.status === "active" ? "btn-outline-warning" : "btn-outline-success"}`}
+                              onClick={() => handleToggleStatus(product._id)}
+                              title={product.status === "active" ? "Deactivate" : "Activate"}
+                            >
+                              <i className={`bi ${product.status === "active" ? "bi-pause" : "bi-play"}`}></i>
+                            </button>
+                            <button
                               className="btn btn-sm btn-outline-danger"
-                              onClick={() => handleDeleteProduct(product._id)}
+                              onClick={() => handleDeleteClick(product._id, product.name)}
                               title="Delete"
                             >
                               <i className="bi bi-trash3"></i>
@@ -537,6 +592,59 @@ const Inventory = () => {
                   disabled={!stockUpdate.quantity}
                 >
                   Update Stock
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deletingItem.type && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Confirm Permanent Delete</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setDeletingItem({ type: null, id: null, name: null })}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <p>
+                  Are you sure you want to <strong className="text-danger">PERMANENTLY DELETE</strong> the product 
+                  <strong> "{deletingItem.name}"</strong>?
+                  <br />
+                  <small className="text-muted">
+                    <i className="bi bi-exclamation-triangle-fill text-danger me-1"></i>
+                    This action cannot be undone and will permanently remove all product data.
+                  </small>
+                </p>
+                <p className="text-warning">
+                  <i className="bi bi-info-circle me-1"></i>
+                  Note: For temporary deactivation, use the status toggle instead.
+                </p>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setDeletingItem({ type: null, id: null, name: null })}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={handleConfirmDelete}
+                  disabled={productsLoading}
+                >
+                  {productsLoading ? (
+                    <span className="spinner-border spinner-border-sm me-1"></span>
+                  ) : null}
+                  Delete Permanently
                 </button>
               </div>
             </div>
