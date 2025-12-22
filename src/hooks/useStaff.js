@@ -1,3 +1,4 @@
+// hooks/useStaff.js
 import { useState } from "react";
 import { toast } from "react-toastify";
 import useAuth from "./useAuth";
@@ -76,10 +77,92 @@ export default function useStaff() {
     }
   };
 
+  // Update staff member
+  const updateStaffMember = async (id, staffData) => {
+    const token = user?.token || (user?.user ? user.user.token : null);
+    
+    if (!token) {
+      toast.error("Authentication required");
+      return { success: false };
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(staffData),
+      });
+
+      const data = await res.json();
+      
+      if (res.ok) {
+        toast.success("Staff member updated successfully!");
+        await fetchStaffMembers(); // Refresh the list
+        return { success: true, data };
+      } else {
+        toast.error(data.message || "Failed to update staff member");
+        return { success: false, message: data.message };
+      }
+    } catch (error) {
+      toast.error("Error updating staff member");
+      return { success: false, message: error.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete staff member (soft delete)
+  const deleteStaffMember = async (id) => {
+    const token = user?.token || (user?.user ? user.user.token : null);
+    
+    if (!token) {
+      toast.error("Authentication required");
+      return { success: false };
+    }
+
+    // Check if trying to delete self
+    if (user?.user?._id === id || user?._id === id) {
+      toast.error("You cannot delete your own account");
+      return { success: false, message: "You cannot delete your own account" };
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/users/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      
+      if (res.ok) {
+        toast.success("Staff member deactivated successfully!");
+        await fetchStaffMembers(); // Refresh the list
+        return { success: true, data };
+      } else {
+        toast.error(data.message || "Failed to delete staff member");
+        return { success: false, message: data.message };
+      }
+    } catch (error) {
+      toast.error("Error deleting staff member");
+      return { success: false, message: error.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     staffMembers,
     loading,
     fetchStaffMembers,
     addStaffMember,
+    updateStaffMember,
+    deleteStaffMember,
   };
 }

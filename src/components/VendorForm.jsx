@@ -2,7 +2,7 @@ import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 
-const VendorForm = ({ onSubmit, onClose, loading }) => {
+const VendorForm = ({ onSubmit, onClose, loading, initialData, isEditing }) => {
   const vendorValidationSchema = Yup.object({
     name: Yup.string().required("Vendor name is required"),
     companyName: Yup.string().required("Company name is required"),
@@ -10,6 +10,7 @@ const VendorForm = ({ onSubmit, onClose, loading }) => {
     phone: Yup.string(),
     address: Yup.string(),
     notes: Yup.string(),
+    ...(isEditing && { status: Yup.string().oneOf(["active", "inactive"], "Invalid status") })
   });
 
   return (
@@ -18,7 +19,8 @@ const VendorForm = ({ onSubmit, onClose, loading }) => {
         <div className="modal-content">
           <div className="modal-header bg-light">
             <h5 className="modal-title fw-bold">
-              <i className="bi bi-person-plus me-2"></i>Add New Vendor
+              <i className={`bi ${isEditing ? "bi-pencil" : "bi-person-plus"} me-2`}></i>
+              {isEditing ? "Edit Vendor" : "Add New Vendor"}
             </h5>
             <button
               type="button"
@@ -29,18 +31,20 @@ const VendorForm = ({ onSubmit, onClose, loading }) => {
           </div>
           <Formik
             initialValues={{
-              name: "",
-              companyName: "",
-              email: "",
-              phone: "",
-              address: "",
-              notes: "",
+              name: initialData?.name || "",
+              companyName: initialData?.companyName || "",
+              email: initialData?.email || "",
+              phone: initialData?.phone || "",
+              address: initialData?.address || "",
+              notes: initialData?.notes || "",
+              ...(isEditing && { status: initialData?.status || "active" })
             }}
             validationSchema={vendorValidationSchema}
-            onSubmit={(values, { setSubmitting, resetForm }) => {
+            onSubmit={(values, { setSubmitting }) => {
               onSubmit(values);
               setSubmitting(false);
             }}
+            enableReinitialize={true}
           >
             {({ isSubmitting }) => (
               <Form>
@@ -136,6 +140,25 @@ const VendorForm = ({ onSubmit, onClose, loading }) => {
                         <ErrorMessage name="notes" />
                       </div>
                     </div>
+
+                    {isEditing && (
+                      <div className="col-12">
+                        <label className="form-label small fw-semibold text-muted">
+                          Status
+                        </label>
+                        <Field
+                          as="select"
+                          name="status"
+                          className="form-select form-select-sm"
+                        >
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                        </Field>
+                        <div className="text-danger small">
+                          <ErrorMessage name="status" />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="modal-footer bg-light">
@@ -155,10 +178,10 @@ const VendorForm = ({ onSubmit, onClose, loading }) => {
                     {loading ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-1"></span>
-                        Adding...
+                        {isEditing ? "Updating..." : "Adding..."}
                       </>
                     ) : (
-                      "Add Vendor"
+                      isEditing ? "Update Vendor" : "Add Vendor"
                     )}
                   </button>
                 </div>

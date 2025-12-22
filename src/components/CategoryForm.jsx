@@ -2,7 +2,7 @@ import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 
-const CategoryForm = ({ onSubmit, onClose, loading }) => {
+const CategoryForm = ({ onSubmit, onClose, loading, initialData, isEditing }) => {
   const categoryValidationSchema = Yup.object({
     name: Yup.string().required("Category name is required"),
     description: Yup.string(),
@@ -14,7 +14,8 @@ const CategoryForm = ({ onSubmit, onClose, loading }) => {
         <div className="modal-content">
           <div className="modal-header bg-light">
             <h5 className="modal-title fw-bold">
-              <i className="bi bi-folder-plus me-2"></i>Add New Category
+              <i className={`bi ${isEditing ? "bi-pencil" : "bi-folder-plus"} me-2`}></i>
+              {isEditing ? "Edit Category" : "Add New Category"}
             </h5>
             <button
               type="button"
@@ -25,14 +26,16 @@ const CategoryForm = ({ onSubmit, onClose, loading }) => {
           </div>
           <Formik
             initialValues={{
-              name: "",
-              description: "",
+              name: initialData?.name || "",
+              description: initialData?.description || "",
+              ...(isEditing && { status: initialData?.status || "active" })
             }}
             validationSchema={categoryValidationSchema}
             onSubmit={(values, { setSubmitting }) => {
               onSubmit(values);
               setSubmitting(false);
             }}
+            enableReinitialize={true}
           >
             {({ isSubmitting }) => (
               <Form>
@@ -67,6 +70,25 @@ const CategoryForm = ({ onSubmit, onClose, loading }) => {
                       <ErrorMessage name="description" />
                     </div>
                   </div>
+
+                  {isEditing && (
+                    <div className="mb-3">
+                      <label className="form-label small fw-semibold text-muted">
+                        Status
+                      </label>
+                      <Field
+                        as="select"
+                        name="status"
+                        className="form-select form-select-sm"
+                      >
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                      </Field>
+                      <div className="text-danger small">
+                        <ErrorMessage name="status" />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="modal-footer bg-light">
                   <button
@@ -85,10 +107,10 @@ const CategoryForm = ({ onSubmit, onClose, loading }) => {
                     {loading ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-1"></span>
-                        Adding...
+                        {isEditing ? "Updating..." : "Adding..."}
                       </>
                     ) : (
-                      "Add Category"
+                      isEditing ? "Update Category" : "Add Category"
                     )}
                   </button>
                 </div>
