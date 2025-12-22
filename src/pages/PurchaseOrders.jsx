@@ -513,7 +513,7 @@ const PurchaseOrders = () => {
                       </td>
                       <td>
                         <div className="fw-bold text-danger">
-                          ${order.totalAmount?.toFixed(2)}
+                          ₹{order.totalAmount?.toFixed(2)}
                         </div>
                         <div className="small text-muted">
                           {order.products?.length} items
