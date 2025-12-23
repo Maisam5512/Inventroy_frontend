@@ -22,6 +22,8 @@ export default function useVendors() {
       const data = await res.json();
       if (res.ok) {
         setVendors(data);
+                console.log("The vendors", data);
+
       } else {
         toast.error(data.message || "Failed to fetch vendors");
       }
